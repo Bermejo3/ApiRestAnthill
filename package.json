@@ -4,7 +4,7 @@
   "description": "",
   "main": "apiRestUser.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node apiRestUser.js"
   },
   "repository": {
     "type": "git",
