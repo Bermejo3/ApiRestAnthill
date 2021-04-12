@@ -19,11 +19,3 @@ connection.connect();
 let port = process.env.PORT || 300
 
 app.listen(port)
-
-app.get("/usuarios", function(request, response){
-           let sql = "SELECT * FROM Usuarios"
-        connection.query(sql, function(err, res){
-        if (err) response.send(err)
-        else response.send(res)
-        })
-})
