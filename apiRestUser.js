@@ -316,3 +316,233 @@ app.delete("/stock", function(request,response)
             }
         })
 })
+
+
+app.post("/empresa", function (req, res) 
+{
+
+    let name = req.body.name;
+    let address = req.body.address;
+    let email = req.body.email;
+    let phone = req.body.phone;
+    let password = req.body.password;
+    let picture = req.body.picture;
+
+    let params = [name, address, email, phone, password, picture]
+    let sql = "INSERT INTO companies (name, address, email, phone, password, picture) VALUES (?,?,?,?,?,?)"
+    connection.query(sql, params, function (error, response) 
+    {
+        if (error) 
+        {
+            res.send({error: true, codigo:0})
+        } else 
+        {
+            res.send({'mensaje': 'Nueva compañía añadida', codigo: 1})
+        }
+    })
+})
+
+app.post("/empleado", function (req, res) 
+{
+    let id_companies = req.body.id_companies;
+    let name = req.body.name;
+    let surname = req.body.surname;
+    let age = req.body.age;
+    let position = req.body.position;
+    let phone = req.body.phone;
+    let shiftMorning = req.body.shiftMorning;
+    let shiftAfternoon = req.body.shiftAfternoon;
+    let shiftEvening = req.body.shiftEvening;
+    let email = req.body.email;
+    let password = req.body.password;
+    let description = req.body.description;
+    let picture = req.body.picture;
+
+    let params = [id_companies, name, surname, age, position, shiftMorning, shiftAfternoon, shiftEvening, email, phone, password, description, picture]
+    let sql = "INSERT INTO employees (id_companies, name, surname, age, position, shiftMorning, shiftAfternoon, shiftEvening, email, phone, password, description, picture) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    connection.query(sql, params, function (error, response) 
+    {
+        if (error) 
+        {
+            res.send({error: true, codigo:0})
+        } else 
+        {
+            res.send({'mensaje': 'Nuevo empleado añadido', codigo: 1})
+        }
+    })
+})
+
+app.post("/producto", function (req, res) 
+{
+    let id_companies = req.body.id_companies;
+    let name = req.body.name;
+    let type = req.body.type;
+    let quantity = req.body.quantity;
+    let unit = req.body.unit;
+    let date = req.body.date;
+    let place= req.body.place;
+    let minQuantity = req.body.minQuantity;
+
+    let params = [id_companies, name, type, quantity, unit, date, place, minQuantity]
+    let sql = "INSERT INTO stock (id_companies, name, type, quantity, unit, date, place, minQuantity) VALUES (?,?,?,?,?,?,?)"
+    connection.query(sql, params, function (error, response) 
+    {
+        if (error) 
+        {
+            res.send({error: true, codigo:0})
+        } else 
+        {
+            res.send({mensaje: 'Nuevo producto añadido', codigo: 1})
+        }
+    })
+})
+
+app.get("/turnos/fecha", function(req, res)
+{
+    let sql = "SELECT employees.name, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts)"
+
+    connection.query(sql, function(error, response)
+    {
+        if (error) 
+        {
+            res.send(error);
+        } else 
+        {
+            res.send(response);
+        }
+    })
+})
+
+app.get("/turnos/empleado", function(req, res)
+{
+    let id_employees = req.query.id_employees;
+    let params = [id_employees];
+
+    let sql = "SELECT employees.name, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts) WHERE employees.id_employees =?"
+
+    connection.query(sql, params, function(error, response)
+    {
+        if (error) 
+        {
+            res.send(error);
+        } else 
+        {
+            res.send(response);
+        }
+    })
+})
+
+app.get("/vacaciones/fecha", function(req, res)
+{
+    let sql = "SELECT employees.name, holidays.date FROM holidays_employees JOIN employees ON(holidays_employees.id_employees = employees.id_employees) JOIN holidays ON(holidays_employees.id_holidays = holidays.id_holidays)"
+
+    connection.query(sql, function(error, response)
+    {
+        if (error) 
+        {
+            res.send(error);
+        } else 
+        {
+            res.send(response);
+        }
+    })
+})
+
+app.put("/empresa", function(req, res)
+{
+    let id_companies = req.body.id_companies;
+    let name = req.body.name;
+    let address = req.body.address;
+    let email = req.body.email;
+    let phone = req.body.phone;
+    let password = req.body.password;
+    let picture = req.body.picture;
+
+    let params = [name, address, email, phone, password, picture, id_companies]
+    let sql = "UPDATE companies SET name = COALESCE(?, name), address = COALESCE(?, address), email = COALESCE(?, email), phone = COALESCE(?, phone), password = COALESCE(?, password), picture = COALESCE(?, picture) WHERE id_companies = ?"
+
+    connection.query(sql, params, function(error, response)
+    {
+        if(error)
+        {
+            res.send(error);
+        }
+        else 
+        {
+            if(response.changedRows == 0)
+            {
+                res.send("No ha cambiado nada")
+            }
+            else
+            {
+                res.send({message: "Campo modificado con éxito", codigo: 1})
+            }
+        }  
+    })
+
+})
+
+app.put("/empleado", function(req, res)
+{
+    let id_employees = req.body.id_employees
+    let name = req.body.name;
+    let surname = req.body.surname;
+    let age = req.body.age;
+    let position = req.body.position;
+    let phone = req.body.phone;
+    let shiftMorning = req.body.shiftMorning;
+    let shiftAfternoon = req.body.shiftAfternoon;
+    let shiftEvening = req.body.shiftEvening;
+    let email = req.body.email;
+    let password = req.body.password;
+    let description = req.body.description;
+    let picture = req.body.picture;
+
+    let params = [name, surname, age, position, shiftMorning, shiftAfternoon, shiftEvening, email, phone, password, description, picture, id_employees]
+    let sql = "UPDATE employees SET name = COALESCE(?, name), surname = COALESCE(?, surname), age = COALESCE(?, age), position = COALESCE (?, position), shiftMorning = COALESCE(?, shiftMorning), shiftAfternoon = COALESCE(?, shiftAfternoon), shiftEvening = COALESCE(?, shiftEvening), email = COALESCE(?, email), phone = COALESCE(?, phone), password = COALESCE(?, password), description = COALESCE(?,description), picture = COALESCE(?, picture) WHERE id_employees = ?"
+
+    connection.query(sql, params, function(error, response)
+    {
+        if(error)
+        {
+            res.send(error);
+        }
+        else 
+        {
+            if(response.changedRows == 0)
+            {
+                res.send("No se ha cambiado nada")
+            }
+            else
+            {
+                res.send({message: "Campo modificado con éxito", codigo: 1})
+            }
+        }  
+    })
+})
+
+app.delete("/empresa", function(req, res)
+{
+    let id_companies = req.body.id_companies
+
+    let param = [id_companies]
+
+    let sql = "DELETE FROM companies WHERE id_companies = ?"
+
+    connection.query(sql, param, function(error,response)
+    {
+        if(error)
+        {
+            res.send(error)
+        }
+        else
+        {
+            res.send({message: "Empresa borrada", codigo: 1})
+        }
+    })
+})
+
+app.use(function(request, response, next){
+    respuesta = {codigo: 404, mensaje: "URL no encontrado"}
+    response.status(404).send(respuesta)
+})
