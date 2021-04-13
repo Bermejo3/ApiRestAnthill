@@ -21,8 +21,8 @@ let port = process.env.PORT || 300
 app.listen(port)
  
 app.post("/productividad", function(request, response){
-    let params = [request.body.id_employees, request.body.productivity, request.body.hours, request.body.date]
-    let sql = "INSERT INTO productivity (id_employees, productivity, hours, date) VALUES (?, ?, ?, ?)"
+    let params = [request.body.id_employees, request.body.productivity, request.body.hours, request.body.date, request.body.id_companies]
+    let sql = "INSERT INTO productivity (id_employees, productivity, hours, date, id_companies) VALUES (?, ?, ?, ?, ?)"
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
         else response.send(res)
@@ -169,38 +169,58 @@ app.get("/empleado/empleado", function(request,response)
         })
     })
 
+app.get("/productividad", function(request,response)
+{
+
+    let params = [request.query.id_companies]
+
+    let sql = "SELECT employees.name, SUM (productivity.productivity) AS sum_productivity, SUM (productivity.hours) AS sum_hours FROM productivity JOIN employees ON (productivity.id_employees = employees.id_employees) WHERE productivity.id_companies = ? GROUP BY employees.name"
+    connection.query(sql, params, function(err,res)
+    {
+        if(err)
+        {
+            response.send(err)
+        }
+        else
+        {
+            response.send(res)
+        }
+    })
+})
+
 app.get("/productividad/empleado", function(request,response)
+{
+    let params = [request.query.id_employees, request.query.id_companies]  
+    let sql = "SELECT employees.name, productivity.productivity, productivity.hours, productivity.date FROM productivity JOIN employees ON (productivity.id_employees = employees.id_employees) WHERE productivity.id_employees = ? AND productivity.id_companies = ?"
+    connection.query(sql,params, function(err,res)
     {
-        let params= [request.query.id_employees]  
-        let sql = "SELECT * FROM productivity WHERE id_employees = ?"
-        connection.query(sql,params, function(err,res)
+        if(err)
         {
-            if(err)
-            {
-                response.send(err)
-            }
-            else
-            {
-                response.send(res)
-            }
-        })
+            response.send(err)
+        }
+        else
+        {
+            response.send(res)
+        }
     })
-    app.get("/productividad/fecha", function(request,response)
+})
+
+app.get("/productividad/fecha", function(request,response)
+{
+    let params= [request.query.date]  
+    let sql = "SELECT * FROM productivity WHERE date = ?"
+    connection.query(sql,params, function(err,res)
     {
-        let params= [request.query.date]  
-        let sql = "SELECT * FROM productivity WHERE date = ?"
-        connection.query(sql,params, function(err,res)
+        if(err)
         {
-            if(err)
-            {
-                response.send(err)
-            }
-            else
-            {
-                response.send(res)
-            }
-        })
+            response.send(err)
+        }
+        else
+        {
+            response.send(res)
+        }
     })
+})
 
 // ----------------------------------Post------------------------------------------------//
 
