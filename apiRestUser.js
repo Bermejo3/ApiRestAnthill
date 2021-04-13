@@ -20,40 +20,21 @@ connection.connect();
 let port = process.env.PORT || 300
 app.listen(port)
  
-app.post("/productividad", function(request, response){
-    let params = [request.body.id_employees, request.body.productivity, request.body.hours, request.body.date, request.body.id_companies]
-    let sql = "INSERT INTO productivity (id_employees, productivity, hours, date, id_companies) VALUES (?, ?, ?, ?, ?)"
-    connection.query(sql, params, function(err, res){
-        if (err) response.send(err)
-        else response.send(res)
-    })
-})
+// -------------------GET------------------------ //
 
-app.post("/empresa/login", function(request, response){
-    let params = [request.body.email, request.body.password]
-    let sql = "SELECT * FROM companies WHERE email = ? AND password = ?"
-    connection.query(sql, params, function(err, res){
-        if (err) response.send(err)
-        else {
-            if (res.length > 0){
-                response.send({"mensaje": "todo OK", codigo: 1})
-            }
-            else response.send({"mensaje": "acceso denegado", codigo: 0})
-        } //Si devuelve un array vacio no se ha conectado
-    })
-})
+app.get("/vacaciones/fecha", function(req, res)
+{
+    let sql = "SELECT employees.name, holidays.date FROM holidays_employees JOIN employees ON(holidays_employees.id_employees = employees.id_employees) JOIN holidays ON(holidays_employees.id_holidays = holidays.id_holidays)"
 
-app.post("/empleado/login", function(request, response){
-    let params = [request.body.email, request.body.password]
-    let sql = "SELECT * FROM employees WHERE email = ? AND password = ?"
-    connection.query(sql, params, function(err, res){
-        if (err) response.send(err)
-        else {
-            if (res.length > 0){
-                response.send({"mensaje": "todo OK", codigo: 1})
-            }
-            else response.send({"mensaje": "acceso denegado", codigo: 0})
-        } //Si devuelve un array vacio no se ha conectado
+    connection.query(sql, function(error, response)
+    {
+        if (error) 
+        {
+            res.send(error);
+        } else 
+        {
+            res.send(response);
+        }
     })
 })
 
@@ -74,49 +55,6 @@ app.get("/stock", function(request, response){
         else response.send(res)
     })
 })
-
-app.put("/stock", function(request, response){
-    let params = [request.body.name, request.body.type, request.body.quantity, request.body.unit, request.body.date, request.body.place, request.body.minQuantity, request.body.id_stock]
-    let sql = `UPDATE stock
-                    SET name = COALESCE(?, name),
-                        type = COALESCE(?, type),
-                        quantity = COALESCE(?, quantity),
-                        unit = COALESCE(?, unit),
-                        date = COALESCE(?, date),
-                        place = COALESCE(?, place),
-                        minQuantity = COALESCE(?, minQuantity)
-                    WHERE id_stock = ?`
-    connection.query(sql, params, function(err, res){
-        if (err) response.send(err)
-        else {
-            if (res.changedRows == 0){
-                response.send({'mensaje': 'El cambio que solicita ya estaba en la base de datos', codigo: 0})
-            }
-            else{
-                response.send({'mensaje': 'Articulo modificado', codigo: 1})
-            }
-        }
-    })
-})
-
-app.delete("/empleado", function(request, response){
-    let params = [request.body.id_employees]
-    let sql = "DELETE FROM employees WHERE id_employees = ?"
-    connection.query(sql, params, function(err, res){
-        if (err) response.send(err)
-        else response.send({'mensaje': 'Empleado borrado', codigo: 1})
-    })
-})
-
-app.delete("/vacaciones", function(request, response){
-    let params = [request.body.id_employees, request.body.date]
-    let sql = "DELETE holidays_employees FROM holidays_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE id_employees = ? AND holidays.date = ?"
-    connection.query(sql, params, function(err, res){
-        if (err) response.send(err)
-        else response.send({'mensaje': 'Dia de vacaciones eliminado', codigo: 1})
-    })
-})
-//-----------------------------------Get-------------------------------------------------//
 
 app.get("/empresa", function(request,response)
     {
@@ -222,7 +160,80 @@ app.get("/productividad/fecha", function(request,response)
     })
 })
 
-// ----------------------------------Post------------------------------------------------//
+app.get("/turnos/fecha", function(req, res)
+{
+    let sql = "SELECT employees.name, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts)"
+
+    connection.query(sql, function(error, response)
+    {
+        if (error) 
+        {
+            res.send(error);
+        } else 
+        {
+            res.send(response);
+        }
+    })
+})
+
+app.get("/turnos/empleado", function(req, res)
+{
+    let id_employees = req.query.id_employees;
+    let params = [id_employees];
+
+    let sql = "SELECT employees.name, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts) WHERE employees.id_employees =?"
+
+    connection.query(sql, params, function(error, response)
+    {
+        if (error) 
+        {
+            res.send(error);
+        } else 
+        {
+            res.send(response);
+        }
+    })
+})
+
+
+// ---------------------POST------------------------ //
+
+app.post("/productividad", function(request, response){
+    let params = [request.body.id_employees, request.body.productivity, request.body.hours, request.body.date, request.body.id_companies]
+    let sql = "INSERT INTO productivity (id_employees, productivity, hours, date, id_companies) VALUES (?, ?, ?, ?, ?)"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else response.send(res)
+    })
+})
+
+app.post("/empresa/login", function(request, response){
+    let params = [request.body.email, request.body.password]
+    let sql = "SELECT * FROM companies WHERE email = ? AND password = ?"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else {
+            if (res.length > 0){
+                response.send({"mensaje": "todo OK", codigo: 1})
+            }
+            else response.send({"mensaje": "acceso denegado", codigo: 0})
+        } //Si devuelve un array vacio no se ha conectado
+    })
+})
+
+app.post("/empleado/login", function(request, response){
+    let params = [request.body.email, request.body.password]
+    let sql = "SELECT * FROM employees WHERE email = ? AND password = ?"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else {
+            if (res.length > 0){
+                response.send({"mensaje": "todo OK", codigo: 1})
+            }
+            else response.send({"mensaje": "acceso denegado", codigo: 0})
+        } //Si devuelve un array vacio no se ha conectado
+    })
+})
 
 app.post("/vacaciones", function(request, response){
 
@@ -290,78 +301,6 @@ app.post("/turnos", function(request, response)
     })
 })
 
-//--------------------------------------------------Post-----------------------------------------------------------------//
-
-app.put("/productividad", function(request,response)
-{
-    let params=[request.body.id_employees, request.body.productivity, request.body.hours, request.body.date,request.body.id_productivity]
-    let respuesta;
-    let sql= `UPDATE productivity 
-                    SET id_employees = COALESCE(?, id_employees),
-                        productivity = COALESCE(?, productivity),
-                        hours = COALESCE(?, hours),
-                        date = COALESCE(?, date)
-                    WHERE id_productivity = ?`
-    connection.query(sql, params, function(err,res)
-        {
-            if(request.body.id_employees == null ||request.body.productivity == null || request.body.hours == null || request.body.date == null)
-            {
-                respuesta={error:true, codigo:0, mensaje: "Faltan datos"}
-            }
-            else          
-            {    
-                if(res.changedRows == 0)
-                {
-                    respuesta={error:true, codigo:0, mensaje: "Productividad existente"}
-                }
-                else
-                {
-                    respuesta={error: false, codigo:1, mensaje: "Artículo modificado", res:res}
-                }
-            }
-            response.send(respuesta)
-        })
-})
-
-//----------------------------------------------------------------Delete--------------------------------------------------------------------------------------//
-
-app.delete("/turnos", function(request,response)
-    {
-        let params = [request.body.id_employees, request.body.id_shifts, request.body.date]
-        let sql = "DELETE FROM shifts_employees WHERE id_employees =? AND id_shifts =? AND date=?"
-        connection.query(sql, params, function(err,res)
-            {
-                if(err)
-                {
-                    response.send(err)
-                }
-                else
-                {
-                    response.send({error: false, codigo:1, mensaje: "Turno borrado", res:res})
-                }
-                
-            })
-    })
-
-    
-app.delete("/stock", function(request,response)
-{
-    let params = [request.body.id_stock]
-    let sql = "DELETE FROM stock WHERE id_stock = ?"
-    connection.query(sql, params, function(err,res)
-        {
-            if(err)
-            {
-                response.send(err)
-            }
-            else
-            {
-                response.send({error: false, codigo:1, mensaje: "Artículo borrado", res:res})
-            }
-        })
-})
-
-
 app.post("/empresa", function (req, res) 
 {
 
@@ -416,7 +355,7 @@ app.post("/empleado", function (req, res)
     })
 })
 
-app.post("/producto", function (req, res) 
+app.post("/stock", function (req, res) 
 {
     let id_companies = req.body.id_companies;
     let name = req.body.name;
@@ -428,7 +367,7 @@ app.post("/producto", function (req, res)
     let minQuantity = req.body.minQuantity;
 
     let params = [id_companies, name, type, quantity, unit, date, place, minQuantity]
-    let sql = "INSERT INTO stock (id_companies, name, type, quantity, unit, date, place, minQuantity) VALUES (?,?,?,?,?,?,?)"
+    let sql = "INSERT INTO stock (id_companies, name, type, quantity, unit, date, place, minQuantity) VALUES (?,?,?,?,?,?,?,?)"
     connection.query(sql, params, function (error, response) 
     {
         if (error) 
@@ -441,55 +380,61 @@ app.post("/producto", function (req, res)
     })
 })
 
-app.get("/turnos/fecha", function(req, res)
-{
-    let sql = "SELECT employees.name, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts)"
+// -----------------------------PUT-------------------------------------------- //
 
-    connection.query(sql, function(error, response)
-    {
-        if (error) 
-        {
-            res.send(error);
-        } else 
-        {
-            res.send(response);
+app.put("/stock", function(request, response){
+    let params = [request.body.name, request.body.type, request.body.quantity, request.body.unit, request.body.date, request.body.place, request.body.minQuantity, request.body.id_stock]
+    let sql = `UPDATE stock
+                    SET name = COALESCE(?, name),
+                        type = COALESCE(?, type),
+                        quantity = COALESCE(?, quantity),
+                        unit = COALESCE(?, unit),
+                        date = COALESCE(?, date),
+                        place = COALESCE(?, place),
+                        minQuantity = COALESCE(?, minQuantity)
+                    WHERE id_stock = ?`
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else {
+            if (res.changedRows == 0){
+                response.send({'mensaje': 'El cambio que solicita ya estaba en la base de datos', codigo: 0})
+            }
+            else{
+                response.send({'mensaje': 'Articulo modificado', codigo: 1})
+            }
         }
     })
 })
 
-app.get("/turnos/empleado", function(req, res)
+app.put("/productividad", function(request,response)
 {
-    let id_employees = req.query.id_employees;
-    let params = [id_employees];
-
-    let sql = "SELECT employees.name, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts) WHERE employees.id_employees =?"
-
-    connection.query(sql, params, function(error, response)
-    {
-        if (error) 
+    let params=[request.body.id_employees, request.body.productivity, request.body.hours, request.body.date,request.body.id_productivity]
+    let respuesta;
+    let sql= `UPDATE productivity 
+                    SET id_employees = COALESCE(?, id_employees),
+                        productivity = COALESCE(?, productivity),
+                        hours = COALESCE(?, hours),
+                        date = COALESCE(?, date)
+                    WHERE id_productivity = ?`
+    connection.query(sql, params, function(err,res)
         {
-            res.send(error);
-        } else 
-        {
-            res.send(response);
-        }
-    })
-})
-
-app.get("/vacaciones/fecha", function(req, res)
-{
-    let sql = "SELECT employees.name, holidays.date FROM holidays_employees JOIN employees ON(holidays_employees.id_employees = employees.id_employees) JOIN holidays ON(holidays_employees.id_holidays = holidays.id_holidays)"
-
-    connection.query(sql, function(error, response)
-    {
-        if (error) 
-        {
-            res.send(error);
-        } else 
-        {
-            res.send(response);
-        }
-    })
+            if(request.body.id_employees == null ||request.body.productivity == null || request.body.hours == null || request.body.date == null)
+            {
+                respuesta={error:true, codigo:0, mensaje: "Faltan datos"}
+            }
+            else          
+            {    
+                if(res.changedRows == 0)
+                {
+                    respuesta={error:true, codigo:0, mensaje: "Productividad existente"}
+                }
+                else
+                {
+                    respuesta={error: false, codigo:1, mensaje: "Artículo modificado", res:res}
+                }
+            }
+            response.send(respuesta)
+        })
 })
 
 app.put("/empresa", function(req, res)
@@ -565,6 +510,47 @@ app.put("/empleado", function(req, res)
     })
 })
 
+
+//----------------------------------------------------------------Delete--------------------------------------------------------------------------------------//
+
+app.delete("/turnos", function(request,response)
+    {
+        let params = [request.body.id_employees, request.body.id_shifts, request.body.date]
+        let sql = "DELETE FROM shifts_employees WHERE id_employees =? AND id_shifts =? AND date=?"
+        connection.query(sql, params, function(err,res)
+            {
+                if(err)
+                {
+                    response.send(err)
+                }
+                else
+                {
+                    response.send({error: false, codigo:1, mensaje: "Turno borrado", res:res})
+                }
+                
+            })
+    })
+
+    
+app.delete("/stock", function(request,response)
+{
+    let params = [request.body.id_stock]
+    let sql = "DELETE FROM stock WHERE id_stock = ?"
+    connection.query(sql, params, function(err,res)
+        {
+            if(err)
+            {
+                response.send(err)
+            }
+            else
+            {
+                response.send({error: false, codigo:1, mensaje: "Artículo borrado", res:res})
+            }
+        })
+})
+
+
+
 app.delete("/empresa", function(req, res)
 {
     let id_companies = req.body.id_companies
@@ -583,6 +569,24 @@ app.delete("/empresa", function(req, res)
         {
             res.send({message: "Empresa borrada", codigo: 1})
         }
+    })
+})
+
+app.delete("/empleado", function(request, response){
+    let params = [request.body.id_employees]
+    let sql = "DELETE FROM employees WHERE id_employees = ?"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else response.send({'mensaje': 'Empleado borrado', codigo: 1})
+    })
+})
+
+app.delete("/vacaciones", function(request, response){
+    let params = [request.body.id_employees, request.body.date]
+    let sql = "DELETE holidays_employees FROM holidays_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE id_employees = ? AND holidays.date = ?"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else response.send({'mensaje': 'Dia de vacaciones eliminado', codigo: 1})
     })
 })
 
