@@ -306,17 +306,23 @@ app.delete("/stock", function(request,response)
     let sql = "DELETE FROM stock WHERE id_stock = ?"
     connection.query(sql, params, function(err,res)
         {
-            if(err)
+            if( res.affectedRows == 0)
             {
-                response.send(err)
+                response.send({error: false, codigo:0, mensaje: "Artículo no existe", res:res})
             }
             else
-            {
-                response.send({error: false, codigo:1, mensaje: "Artículo borrado", res:res})
-            }
+            {          
+                if(err)
+                {
+                    response.send(err)
+                }
+                else
+                {
+                    response.send({error: false, codigo:1, mensaje: "Artículo borrado", res:res})
+                }
+            }    
         })
 })
-
 
 app.post("/empresa", function (req, res) 
 {
@@ -372,7 +378,7 @@ app.post("/empleado", function (req, res)
     })
 })
 
-app.post("/producto", function (req, res) 
+app.post("/stock", function (req, res) 
 {
     let id_companies = req.body.id_companies;
     let name = req.body.name;
@@ -384,7 +390,7 @@ app.post("/producto", function (req, res)
     let minQuantity = req.body.minQuantity;
 
     let params = [id_companies, name, type, quantity, unit, date, place, minQuantity]
-    let sql = "INSERT INTO stock (id_companies, name, type, quantity, unit, date, place, minQuantity) VALUES (?,?,?,?,?,?,?)"
+    let sql = "INSERT INTO stock (id_companies, name, type, quantity, unit, date, place, minQuantity) VALUES (?,?,?,?,?,?,?,?)"
     connection.query(sql, params, function (error, response) 
     {
         if (error) 
