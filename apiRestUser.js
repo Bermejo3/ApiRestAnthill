@@ -59,7 +59,7 @@ app.post("/empleado/login", function(request, response){
 
 app.get("/vacaciones/empleado", function(request, response){
     let params = [request.query.id_employees]
-    let sql = "SELECT holidays.date FROM holidays_employees INNER JOIN holidays ON holidays_employees.id_holidays = holidays.id_holidays WHERE id_employees = ?"
+    let sql = "SELECT holidays.date FROM holidays_employees INNER JOIN holidays ON holidays_employees.id_holidays = holidays.id_holidays WHERE id_employees = ? ORDER BY holidays.date"
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
         else response.send(res)
@@ -109,8 +109,8 @@ app.delete("/empleado", function(request, response){
 })
 
 app.delete("/vacaciones", function(request, response){
-    let params = [request.body.id_employees, request.body.id_holidays]
-    let sql = "DELETE FROM holidays_employees WHERE id_employees = ? AND id_holidays = ?"
+    let params = [request.body.id_employees, request.body.date]
+    let sql = "DELETE holidays_employees FROM holidays_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE id_employees = ? AND holidays.date = ?"
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
         else response.send({'mensaje': 'Dia de vacaciones eliminado', codigo: 1})
@@ -227,21 +227,45 @@ app.get("/productividad/fecha", function(request,response)
 app.post("/vacaciones", function(request, response){
 
     let params = [request.body.date]
-    let respuesta;
-    let sql = "INSERT INTO holidays (date) VALUES (?)"
+    let sql = "SELECT id_holidays FROM holidays WHERE date = ?"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else {
+            if (res.length == 0){
+                params = [request.body.date]
+                sql = "INSERT INTO holidays (date) VALUES (?)"
+                connection.query(sql, params, function(err, res){
+                    if (err) response.send(err)
+                    else{
+                        params = [request.body.id_employees, res.insertId]
+                        sql = "INSERT INTO holidays_employees (id_employees, id_holidays) VALUES (?,?)"
+                        connection.query(sql, params, function(err, res){
+                            if (err) response.send(err)
+                            else {
+                                if (res.affectedRows == 1){
+                                    response.send({mensaje: "Vacaciones añadidas", codigo: 1})
+                                }
+                                else response.send(res)
+                            }
 
-    connection.query(sql, params, function(err, res)
-    {
-
-          if (request.body.date == null)
-            {
-                respuesta={error:true, codigo:200, mensaje: "Faltan datos"}
+                        })
+                    }
+                })
             }
-            else
-            {
-                respuesta={error: false, codigo:200, mensaje: "Vacaciones añadidas correctamente", res:res}
+            else{
+                params = [request.body.id_employees, res[0].id_holidays]
+                sql = "INSERT INTO holidays_employees (id_employees, id_holidays) VALUES (?,?)"
+                connection.query(sql, params, function(err, res){
+                    if (err) response.send(err)
+                    else {
+                        if (res.affectedRows == 1){
+                            response.send({mensaje: "Vacaciones añadidas", codigo: 1})
+                        }
+                        else response.send(res)
+                    }
+                })
             }
-            response.send(respuesta)           
+        }
     })
 })
 
