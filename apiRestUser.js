@@ -321,7 +321,10 @@ app.post("/turnos", function(request, response)
             response.send(respuesta)           
     })
 })
+<<<<<<< HEAD
 
+=======
+>>>>>>> ramaManuel
 app.post("/empresa", function (req, res) 
 {
 
@@ -341,7 +344,7 @@ app.post("/empresa", function (req, res)
             res.send({error: true, codigo:0})
         } else 
         {
-            res.send({'mensaje': 'Nueva compañía añadida', codigo: 1})
+            res.send({'mensaje': 'Nueva empresa añadida', codigo: 1})
         }
     })
 })
@@ -404,7 +407,7 @@ app.post("/stock", function (req, res)
 // -----------------------------PUT-------------------------------------------- //
 
 app.put("/stock", function(request, response){
-    let params = [request.body.name, request.body.type, request.body.quantity, request.body.unit, request.body.date, request.body.place, request.body.minQuantity, request.body.id_stock]
+    let params = [ request.body.name, request.body.type, request.body.quantity, request.body.unit, request.body.date, request.body.place, request.body.minQuantity,request.body.picture ,request.body.id_stock]
     let sql = `UPDATE stock
                     SET name = COALESCE(?, name),
                         type = COALESCE(?, type),
@@ -412,7 +415,8 @@ app.put("/stock", function(request, response){
                         unit = COALESCE(?, unit),
                         date = COALESCE(?, date),
                         place = COALESCE(?, place),
-                        minQuantity = COALESCE(?, minQuantity)
+                        minQuantity = COALESCE(?, minQuantity),
+                        picture= COALESCE(?, picture)
                     WHERE id_stock = ?`
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
