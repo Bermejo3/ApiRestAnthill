@@ -300,88 +300,6 @@ app.post("/turnos", function(request, response)
             response.send(respuesta)           
     })
 })
-
-<<<<<<< HEAD
-//--------------------------------------------------Post-----------------------------------------------------------------//
-
-app.put("/productividad", function(request,response)
-{
-    let params=[request.body.id_employees, request.body.productivity, request.body.hours, request.body.date,request.body.id_productivity]
-    let respuesta;
-    let sql= `UPDATE productivity 
-                    SET id_employees = COALESCE(?, id_employees),
-                        productivity = COALESCE(?, productivity),
-                        hours = COALESCE(?, hours),
-                        date = COALESCE(?, date)
-                    WHERE id_productivity = ?`
-    connection.query(sql, params, function(err,res)
-        {
-            if(request.body.id_employees == null ||request.body.productivity == null || request.body.hours == null || request.body.date == null)
-            {
-                respuesta={error:true, codigo:0, mensaje: "Faltan datos"}
-            }
-            else          
-            {    
-                if(res.changedRows == 0)
-                {
-                    respuesta={error:true, codigo:0, mensaje: "Productividad existente"}
-                }
-                else
-                {
-                    respuesta={error: false, codigo:1, mensaje: "Artículo modificado", res:res}
-                }
-            }
-            response.send(respuesta)
-        })
-})
-
-//----------------------------------------------------------------Delete--------------------------------------------------------------------------------------//
-
-app.delete("/turnos", function(request,response)
-    {
-        let params = [request.body.id_employees, request.body.id_shifts, request.body.date]
-        let sql = "DELETE FROM shifts_employees WHERE id_employees =? AND id_shifts =? AND date=?"
-        connection.query(sql, params, function(err,res)
-            {
-                if(err)
-                {
-                    response.send(err)
-                }
-                else
-                {
-                    response.send({error: false, codigo:1, mensaje: "Turno borrado", res:res})
-                }
-                
-            })
-    })
-
-    
-app.delete("/stock", function(request,response)
-{
-    let params = [request.body.id_stock]
-    let sql = "DELETE FROM stock WHERE id_stock = ?"
-    connection.query(sql, params, function(err,res)
-        {
-            if( res.affectedRows == 0)
-            {
-                response.send({error: false, codigo:0, mensaje: "Artículo no existe", res:res})
-            }
-            else
-            {          
-                if(err)
-                {
-                    response.send(err)
-                }
-                else
-                {
-                    response.send({error: false, codigo:1, mensaje: "Artículo borrado", res:res})
-                }
-            }    
-        })
-})
-
-=======
->>>>>>> 90a3e15cb605b8404fb8c223361c05af7cc55178
 app.post("/empresa", function (req, res) 
 {
 
@@ -401,7 +319,7 @@ app.post("/empresa", function (req, res)
             res.send({error: true, codigo:0})
         } else 
         {
-            res.send({'mensaje': 'Nueva compañía añadida', codigo: 1})
+            res.send({'mensaje': 'Nueva empresa añadida', codigo: 1})
         }
     })
 })
@@ -464,7 +382,7 @@ app.post("/stock", function (req, res)
 // -----------------------------PUT-------------------------------------------- //
 
 app.put("/stock", function(request, response){
-    let params = [request.body.name, request.body.type, request.body.quantity, request.body.unit, request.body.date, request.body.place, request.body.minQuantity, request.body.id_stock]
+    let params = [ request.body.name, request.body.type, request.body.quantity, request.body.unit, request.body.date, request.body.place, request.body.minQuantity,request.body.picture ,request.body.id_stock]
     let sql = `UPDATE stock
                     SET name = COALESCE(?, name),
                         type = COALESCE(?, type),
@@ -472,7 +390,8 @@ app.put("/stock", function(request, response){
                         unit = COALESCE(?, unit),
                         date = COALESCE(?, date),
                         place = COALESCE(?, place),
-                        minQuantity = COALESCE(?, minQuantity)
+                        minQuantity = COALESCE(?, minQuantity),
+                        picture= COALESCE(?, picture)
                     WHERE id_stock = ?`
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
