@@ -126,6 +126,25 @@ app.get("/productividad", function(request,response)
     })
 })
 
+app.get("/productividad/fecha", function(request,response)
+{
+
+    let params = [request.query.id_companies]
+
+    let sql = "SELECT SUM(productivity.productivity) AS sum_productivity, MONTH(date) AS mes  FROM productivity WHERE productivity.id_companies = ? AND YEAR(date)=2021 GROUP BY MONTH(date)"
+    connection.query(sql, params, function(err,res)
+    {
+        if(err)
+        {
+            response.send(err)
+        }
+        else
+        {
+            response.send(res)
+        }
+    })
+})
+
 app.get("/productividad/empleado", function(request,response)
 {
     let params = [request.query.id_employees, request.query.id_companies]  
@@ -143,10 +162,10 @@ app.get("/productividad/empleado", function(request,response)
     })
 })
 
-app.get("/productividad/fecha", function(request,response)
+app.get("/productividad/empleado/fecha", function(request,response)
 {
-    let params= [request.query.date]  
-    let sql = "SELECT * FROM productivity WHERE date = ?"
+    let params=[request.query.id_employees, request.query.id_companies];
+    let sql = "SELECT SUM(productivity.productivity) AS sum_productivity, MONTH(date) AS mes FROM productivity WHERE id_employees=? AND id_companies=? AND YEAR(date)=2021 GROUP BY MONTH(date)";
     connection.query(sql,params, function(err,res)
     {
         if(err)
@@ -159,6 +178,8 @@ app.get("/productividad/fecha", function(request,response)
         }
     })
 })
+
+
 
 app.get("/turnos/fecha", function(req, res)
 {
@@ -675,3 +696,26 @@ app.use(function(request, response, next){
     respuesta = {codigo: 404, mensaje: "URL no encontrado"}
     response.status(404).send(respuesta)
 })
+
+
+// function datosAleatorios()
+// {
+    
+//     for(let i=0; i<365; i++)
+//     {
+//         let date = new Date(2021,0,1)
+//         let productivity = Math.round(Math.random()*100);
+//         let hours = Math.round(Math.random()*10);
+//         date.setDate(date.getDate() + i);
+
+//         let params = [2, productivity, hours, date, 1]
+//         let sql = "INSERT INTO productivity (id_employees, productivity, hours, date, id_companies) VALUES (?, ?, ?, ?, ?)"
+//         connection.query(sql, params, function(err, res){
+//             if (err) console.log(err)
+//             else console.log({'mensaje': 'Empleado borrado', codigo: i})
+//         })
+//     }
+    
+// }
+
+// datosAleatorios()
