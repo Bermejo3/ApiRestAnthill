@@ -160,28 +160,19 @@ app.get("/productividad/fecha", function(request,response)
     })
 })
 
-app.get("/turnos/fecha", function(req, res)
-{
-    let sql = "SELECT employees.name, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts)"
-
-    connection.query(sql, function(error, response)
-    {
-        if (error) 
-        {
-            res.send(error);
-        } else 
-        {
-            res.send(response);
-        }
+app.get("/turnos/empresa", function(request, response){
+    let params = [request.query.id_companies]
+    let sql = "SELECT COUNT(id_employees) AS count_employees, date FROM shifts_employees WHERE id_companies = ? GROUP BY date"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else response.send(res)
     })
 })
 
-app.get("/turnos/empleado", function(req, res)
+app.get("/turnos/semana", function(request, res)
 {
-    let id_employees = req.query.id_employees;
-    let params = [id_employees];
-
-    let sql = "SELECT employees.name, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts) WHERE employees.id_employees =?"
+    let params = [request.query.id_companies]
+    let sql = "SELECT employees.id_employees, employees.name, employees.surname, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts) WHERE shifts_employees.id_companies = ?"
 
     connection.query(sql, params, function(error, response)
     {
@@ -194,6 +185,49 @@ app.get("/turnos/empleado", function(req, res)
         }
     })
 })
+
+app.get("/turnos/empleado", function(request, res)
+{
+    let params = [request.query.id_companies, request.query.id_employees];
+    let sql = "SELECT employees.name, employees.surname, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts) WHERE shifts_employees.id_companies = ? AND employees.id_employees =?"
+
+    connection.query(sql, params, function(error, response)
+    {
+        if (error) 
+        {
+            res.send(error);
+        } else 
+        {
+            res.send(response);
+        }
+    })
+})
+
+app.get("/turnos/listaempleados", function(request, response){
+    let params = [request.query.id_companies, request.query.shiftMorning, request.query.shiftAfternoon, request.query.shiftEvening];
+    let sql = "SELECT employees.id_employees, employees.name, employees.surname FROM employees WHERE id_companies = ? AND shiftMorning = ? AND shiftAfternoon = ? AND shiftEvening = ?"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else response.send(res)
+    })
+})
+
+// SELECT 
+//     employees.name, employees.surname
+// FROM
+//     employees
+//         JOIN
+//     holidays_employees ON holidays_employees.id_employees = employees.id_employees
+//         JOIN
+//     holidays ON holidays.id_holidays = holidays_employees.id_holidays
+// 		JOIN
+// 	shifts_employees ON shifts_employees.id_employees=employees.id_employees
+// WHERE
+//     (shiftMorning != 0 AND shiftAfternoon = 0 AND shiftEvening = 0)
+//         AND (holidays.date != 2021-04-26)
+//         AND (shifts_employees.date != 2021-04-26 AND shifts_employees.id_shifts != 1)
+//         AND (employees.id_companies = 1)
+// GROUP BY employees.name
 
 
 // ---------------------POST------------------------ //
@@ -282,22 +316,20 @@ app.post("/vacaciones", function(request, response){
 
 app.post("/turnos", function(request, response)
 {
-    let params = [request.body.employees,request.body.id_shifts, request.body.date]
+    let params = [request.body.id_companies, request.body.id_employees, request.body.id_shifts, request.body.date]
     let respuesta;
-    let sql = "INSERT INTO shifts_employees (id_employees, id_shifts, date) VALUES (?, ?, ?)"
+    let sql = "INSERT INTO shifts_employees (id_companies, id_employees, id_shifts, date) VALUES (?, ?, ?, ?)"
 
     connection.query(sql, params, function(err, res)
     {
 
-          if (request.body.id_employees== null || request.body.id_shifts == null || request.body.date == null )
-            {
-                respuesta={error:true, codigo:0, mensaje: "Faltan datos"}
-            }
-            else
-            {
-                respuesta={error: false, codigo:1, mensaje: "Vacaciones añadidas correctamente", res:res}
-            }
-            response.send(respuesta)           
+        if (err){
+            respuesta={error:true, codigo:0, mensaje: "Faltan datos", err: err}
+        }
+        else{
+            respuesta={error: false, codigo:1, mensaje: "Vacaciones añadidas correctamente", res:res}
+        }
+        response.send(respuesta)           
     })
 })
 
@@ -515,8 +547,8 @@ app.put("/empleado", function(req, res)
 
 app.delete("/turnos", function(request,response)
     {
-        let params = [request.body.id_employees, request.body.id_shifts, request.body.date]
-        let sql = "DELETE FROM shifts_employees WHERE id_employees =? AND id_shifts =? AND date=?"
+        let params = [request.body.id_companies, request.body.id_employees, request.body.id_shifts, request.body.date]
+        let sql = "DELETE FROM shifts_employees WHERE id_companies = ? AND id_employees = ? AND id_shifts = ? AND date= ?"
         connection.query(sql, params, function(err,res)
             {
                 if(err)
@@ -594,3 +626,23 @@ app.use(function(request, response, next){
     respuesta = {codigo: 404, mensaje: "URL no encontrado"}
     response.status(404).send(respuesta)
 })
+
+// function meterturnos(){
+//     let employees = []
+//     let turno = []
+//     let fecha = ""
+//     let params = []
+//     let sql = ""
+//     for (let i=0; i<10; i++){
+//         employees = [1, 2, 3, 4, 5, 6, 7, 8]
+//         turno = [1, 2, 3]
+//         fecha = `2021-05-2${i}`
+//         params = [1, employees[Math.floor(Math.random()*employees.length)], turno[Math.floor(Math.random()*turno.length)], fecha]
+//         sql = "INSERT INTO shifts_employees (id_companies, id_employees, id_shifts, date) VALUES (?, ?, ?, ?)"
+//         connection.query(sql, params, function(err, res){
+//             if (err) console.log(err)
+//             else console.log('turno añadido')
+//         })
+//     }
+// }
+// meterturnos()
