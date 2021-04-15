@@ -112,7 +112,7 @@ app.get("/productividad", function(request,response)
 
     let params = [request.query.id_companies]
 
-    let sql = "SELECT employees.name, SUM (productivity.productivity) AS sum_productivity, SUM (productivity.hours) AS sum_hours FROM productivity JOIN employees ON (productivity.id_employees = employees.id_employees) WHERE productivity.id_companies = ? GROUP BY employees.name"
+    let sql = "SELECT employees.id_employees, employees.name, SUM (productivity.productivity) AS sum_productivity, SUM (productivity.hours) AS sum_hours FROM productivity JOIN employees ON (productivity.id_employees = employees.id_employees) WHERE productivity.id_companies = ? GROUP BY employees.name"
     connection.query(sql, params, function(err,res)
     {
         if(err)
@@ -148,7 +148,7 @@ app.get("/productividad/fecha", function(request,response)
 app.get("/productividad/empleado", function(request,response)
 {
     let params = [request.query.id_employees, request.query.id_companies]  
-    let sql = "SELECT employees.name, productivity.productivity, productivity.hours, productivity.date FROM productivity JOIN employees ON (productivity.id_employees = employees.id_employees) WHERE productivity.id_employees = ? AND productivity.id_companies = ?"
+    let sql = "SELECT productivity.id_employees, employees.name, productivity.productivity, productivity.hours, productivity.date, productivity.id_companies, productivity.id_productivity FROM productivity JOIN employees ON (productivity.id_employees = employees.id_employees) WHERE productivity.id_employees = ? AND productivity.id_companies = ?"
     connection.query(sql,params, function(err,res)
     {
         if(err)
@@ -329,7 +329,7 @@ app.post("/vacaciones", function(request, response){
                     }
                 })
             }
-        }
+        }3
     })
 })
 
@@ -459,19 +459,21 @@ app.put("/stock", function(request, response){
 
 app.put("/productividad", function(request,response)
 {
-    let params=[request.body.id_employees, request.body.productivity, request.body.hours, request.body.date,request.body.id_productivity]
+    let params=[request.body.productivity, request.body.hours, request.body.date, request.body.id_companies, request.body.id_employees,request.body.id_productivity]
     let respuesta;
     let sql= `UPDATE productivity 
-                    SET id_employees = COALESCE(?, id_employees),
+                    SET 
                         productivity = COALESCE(?, productivity),
                         hours = COALESCE(?, hours),
                         date = COALESCE(?, date)
-                    WHERE id_productivity = ?`
+                    WHERE id_companies = ? AND id_employees = ? AND id_productivity = ?`
+                    
     connection.query(sql, params, function(err,res)
         {
-            if(request.body.id_employees == null ||request.body.productivity == null || request.body.hours == null || request.body.date == null)
+            
+            if(err)
             {
-                respuesta={error:true, codigo:0, mensaje: "Faltan datos"}
+                respuesta={error:true, codigo:0, mensaje: err}
             }
             else          
             {    
