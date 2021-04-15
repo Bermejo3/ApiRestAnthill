@@ -208,7 +208,7 @@ app.get("/turnos/semana", function(request, res)
 app.get("/turnos/empleado", function(request, res)
 {
     let params = [request.query.id_companies, request.query.id_employees];
-    let sql = "SELECT employees.name, employees.surname, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts) WHERE shifts_employees.id_companies = ? AND employees.id_employees =?"
+    let sql = "SELECT employees.id_employees, employees.name, employees.surname, shifts.turno, shifts_employees.date FROM shifts_employees JOIN employees ON(shifts_employees.id_employees = employees.id_employees) JOIN shifts ON(shifts_employees.id_shifts = shifts.id_shifts) WHERE shifts_employees.id_companies = ? AND employees.id_employees =?"
 
     connection.query(sql, params, function(error, response)
     {
@@ -222,31 +222,32 @@ app.get("/turnos/empleado", function(request, res)
     })
 })
 
-app.get("/turnos/listaempleados", function(request, response){
-    let params = [request.query.id_companies, request.query.shiftMorning, request.query.shiftAfternoon, request.query.shiftEvening];
-    let sql = "SELECT employees.id_employees, employees.name, employees.surname FROM employees WHERE id_companies = ? AND shiftMorning = ? AND shiftAfternoon = ? AND shiftEvening = ?"
+app.get("/turnos/listaempleados/morning", function(request, response){
+    let params = [request.query.date, request.query.shiftMorning, request.query.id_companies,  request.query.id_shifts, request.query.date2];
+    let sql = `SELECT employees.id_employees, employees.name, employees.surname FROM employees JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE employees.id_employees NOT IN (SELECT employees.id_employees FROM employees JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE holidays.date = ?) AND shiftMorning = ? AND employees.id_companies = ? AND employees.id_employees NOT IN (SELECT employees.id_employees FROM employees JOIN shifts_employees ON shifts_employees.id_employees = employees.id_employees WHERE id_shifts = ? AND date = ?) GROUP BY employees.id_employees`
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
         else response.send(res)
     })
 })
 
-// SELECT 
-//     employees.name, employees.surname
-// FROM
-//     employees
-//         JOIN
-//     holidays_employees ON holidays_employees.id_employees = employees.id_employees
-//         JOIN
-//     holidays ON holidays.id_holidays = holidays_employees.id_holidays
-// 		JOIN
-// 	shifts_employees ON shifts_employees.id_employees=employees.id_employees
-// WHERE
-//     (shiftMorning != 0 AND shiftAfternoon = 0 AND shiftEvening = 0)
-//         AND (holidays.date != 2021-04-26)
-//         AND (shifts_employees.date != 2021-04-26 AND shifts_employees.id_shifts != 1)
-//         AND (employees.id_companies = 1)
-// GROUP BY employees.name
+app.get("/turnos/listaempleados/afternoon", function(request, response){
+    let params = [request.query.date, request.query.shiftAfternoon, request.query.id_companies,  request.query.id_shifts, request.query.date2];
+    let sql = `SELECT employees.id_employees, employees.name, employees.surname FROM employees JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE employees.id_employees NOT IN (SELECT employees.id_employees FROM employees JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE holidays.date = ?) AND shiftAfternoon = ? AND employees.id_companies = ? AND employees.id_employees NOT IN (SELECT employees.id_employees FROM employees JOIN shifts_employees ON shifts_employees.id_employees = employees.id_employees WHERE id_shifts = ? AND date = ?) GROUP BY employees.id_employees`
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else response.send(res)
+    })
+})
+
+app.get("/turnos/listaempleados/evening", function(request, response){
+    let params = [request.query.date, request.query.shiftEvening, request.query.id_companies,  request.query.id_shifts, request.query.date2];
+    let sql = `SELECT employees.id_employees, employees.name, employees.surname FROM employees JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE employees.id_employees NOT IN (SELECT employees.id_employees FROM employees JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE holidays.date = ?) AND shiftEvening = ? AND employees.id_companies = ? AND employees.id_employees NOT IN (SELECT employees.id_employees FROM employees JOIN shifts_employees ON shifts_employees.id_employees = employees.id_employees WHERE id_shifts = ? AND date = ?) GROUP BY employees.id_employees`
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else response.send(res)
+    })
+})
 
 
 // ---------------------POST------------------------ //
@@ -267,7 +268,7 @@ app.post("/empresa/login", function(request, response){
         if (err) response.send(err)
         else {
             if (res.length > 0){
-                response.send({"mensaje": "todo OK", codigo: 1})
+                response.send({"mensaje": "todo OK", codigo: 1, res: res})
             }
             else response.send({"mensaje": "acceso denegado", codigo: 0})
         } //Si devuelve un array vacio no se ha conectado
@@ -281,7 +282,7 @@ app.post("/empleado/login", function(request, response){
         if (err) response.send(err)
         else {
             if (res.length > 0){
-                response.send({"mensaje": "todo OK", codigo: 1})
+                response.send({"mensaje": "todo OK", codigo: 1, res: res})
             }
             else response.send({"mensaje": "acceso denegado", codigo: 0})
         } //Si devuelve un array vacio no se ha conectado
@@ -670,6 +671,8 @@ app.use(function(request, response, next){
 // }
 
 // datosAleatorios()
+
+
 // function meterturnos(){
 //     let employees = []
 //     let turno = []
@@ -677,9 +680,9 @@ app.use(function(request, response, next){
 //     let params = []
 //     let sql = ""
 //     for (let i=0; i<10; i++){
-//         employees = [1, 2, 3, 4, 5, 6, 7, 8]
+//         employees = [1]
 //         turno = [1, 2, 3]
-//         fecha = `2021-05-2${i}`
+//         fecha = `2021-05-1${i}`
 //         params = [1, employees[Math.floor(Math.random()*employees.length)], turno[Math.floor(Math.random()*turno.length)], fecha]
 //         sql = "INSERT INTO shifts_employees (id_companies, id_employees, id_shifts, date) VALUES (?, ?, ?, ?)"
 //         connection.query(sql, params, function(err, res){
