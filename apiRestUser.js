@@ -242,7 +242,23 @@ app.get("/turnos/listaempleados/afternoon", function(request, response){
 
 app.get("/turnos/listaempleados/evening", function(request, response){
     let params = [request.query.date, request.query.shiftEvening, request.query.id_companies,  request.query.id_shifts, request.query.date2];
-    let sql = `SELECT employees.id_employees, employees.name, employees.surname FROM employees JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE employees.id_employees NOT IN (SELECT employees.id_employees FROM employees JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE holidays.date = ?) AND shiftEvening = ? AND employees.id_companies = ? AND employees.id_employees NOT IN (SELECT employees.id_employees FROM employees JOIN shifts_employees ON shifts_employees.id_employees = employees.id_employees WHERE id_shifts = ? AND date = ?) GROUP BY employees.id_employees`
+    let sql = `SELECT employees.id_employees, employees.name, employees.surname FROM employees 
+    JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees 
+    JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays 
+    WHERE employees.id_employees 
+    NOT IN (SELECT employees.id_employees 
+        FROM employees 
+        JOIN holidays_employees ON holidays_employees.id_employees = employees.id_employees 
+        JOIN holidays ON holidays.id_holidays = holidays_employees.id_holidays WHERE holidays.date = ?) 
+    AND shiftEvening = ? 
+    AND employees.id_companies = ? 
+    AND employees.id_employees 
+    NOT IN (SELECT employees.id_employees 
+        FROM employees 
+        JOIN shifts_employees ON shifts_employees.id_employees = employees.id_employees 
+        WHERE id_shifts = ? 
+            AND date = ?) 
+    GROUP BY employees.id_employees`
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
         else response.send(res)
