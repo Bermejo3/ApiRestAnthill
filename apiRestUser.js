@@ -22,11 +22,12 @@ app.listen(port)
  
 // -------------------GET------------------------ //
 
-app.get("/vacaciones/fecha", function(req, res)
+app.get("/vacaciones/fecha", function(request, res)
 {
-    let sql = "SELECT employees.name, holidays.date FROM holidays_employees JOIN employees ON(holidays_employees.id_employees = employees.id_employees) JOIN holidays ON(holidays_employees.id_holidays = holidays.id_holidays)"
+    let params = [request.query.id_companies]
+    let sql = "SELECT employees.name, holidays.date FROM holidays_employees JOIN employees ON(holidays_employees.id_employees = employees.id_employees) JOIN holidays ON(holidays_employees.id_holidays = holidays.id_holidays) WHERE holidays_employees.id_companies = ?"
 
-    connection.query(sql, function(error, response)
+    connection.query(sql, params, function(error, response)
     {
         if (error) 
         {
