@@ -318,8 +318,8 @@ app.post("/vacaciones", function(request, response){
                 connection.query(sql, params, function(err, res){
                     if (err) response.send(err)
                     else{
-                        params = [request.body.id_employees, res.insertId]
-                        sql = "INSERT INTO holidays_employees (id_employees, id_holidays) VALUES (?,?)"
+                        params = [request.body.id_employees, res.insertId, request.body.id_companies]
+                        sql = "INSERT INTO holidays_employees (id_employees, id_holidays, id_companies) VALUES (?,?,?)"
                         connection.query(sql, params, function(err, res){
                             if (err) response.send(err)
                             else {
@@ -334,8 +334,8 @@ app.post("/vacaciones", function(request, response){
                 })
             }
             else{
-                params = [request.body.id_employees, res[0].id_holidays]
-                sql = "INSERT INTO holidays_employees (id_employees, id_holidays) VALUES (?,?)"
+                params = [request.body.id_employees, res[0].id_holidays, request.body.id_companies]
+                sql = "INSERT INTO holidays_employees (id_employees, id_holidays, id_companies) VALUES (?,?,?)"
                 connection.query(sql, params, function(err, res){
                     if (err) response.send(err)
                     else {
@@ -429,12 +429,11 @@ app.post("/stock", function (req, res)
     let type = req.body.type;
     let quantity = req.body.quantity;
     let unit = req.body.unit;
-    let date = req.body.date;
     let place= req.body.place;
     let minQuantity = req.body.minQuantity;
 
-    let params = [id_companies, name, type, quantity, unit, date, place, minQuantity]
-    let sql = "INSERT INTO stock (id_companies, name, type, quantity, unit, date, place, minQuantity) VALUES (?,?,?,?,?,?,?,?)"
+    let params = [id_companies, name, type, quantity, unit, place, minQuantity]
+    let sql = "INSERT INTO stock (id_companies, name, type, quantity, unit, place, minQuantity) VALUES (?,?,?,?,?,?,?)"
     connection.query(sql, params, function (error, response) 
     {
         if (error) 
@@ -450,13 +449,12 @@ app.post("/stock", function (req, res)
 // -----------------------------PUT-------------------------------------------- //
 
 app.put("/stock", function(request, response){
-    let params = [ request.body.name, request.body.type, request.body.quantity, request.body.unit, request.body.date, request.body.place, request.body.minQuantity,request.body.picture ,request.body.id_stock]
+    let params = [ request.body.name, request.body.type, request.body.quantity, request.body.unit, request.body.place, request.body.minQuantity,request.body.picture ,request.body.id_stock]
     let sql = `UPDATE stock
                     SET name = COALESCE(?, name),
                         type = COALESCE(?, type),
                         quantity = COALESCE(?, quantity),
                         unit = COALESCE(?, unit),
-                        date = COALESCE(?, date),
                         place = COALESCE(?, place),
                         minQuantity = COALESCE(?, minQuantity),
                         picture= COALESCE(?, picture)
