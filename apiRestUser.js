@@ -274,7 +274,12 @@ app.post("/productividad", function(request, response){
     let sql = "INSERT INTO productivity (id_employees, productivity, hours, date, id_companies) VALUES (?, ?, ?, ?, ?)"
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
-        else response.send(res)
+        else {
+            if (res.affectedRows == 1){
+                response.send({mensaje: "Dato de productividad añadido", codigo: 1})
+            }
+            else response.send(res)
+        }
     })
 })
 
@@ -499,7 +504,7 @@ app.put("/productividad", function(request,response)
                 }
                 else
                 {
-                    respuesta={error: false, codigo:1, mensaje: "Artículo modificado", res:res}
+                    respuesta={error: false, codigo:1, mensaje: "Dato de productividad modificado", res:res}
                 }
             }
             response.send(respuesta)
@@ -656,6 +661,15 @@ app.delete("/vacaciones", function(request, response){
     connection.query(sql, params, function(err, res){
         if (err) response.send(err)
         else response.send({'mensaje': 'Dia de vacaciones eliminado', codigo: 1})
+    })
+})
+
+app.delete("/productividad", function(request, response){
+    let params = [request.body.id_productivity]
+    let sql = "DELETE FROM productivity WHERE id_productivity = ?"
+    connection.query(sql, params, function(err, res){
+        if (err) response.send(err)
+        else response.send({'mensaje': 'Dato de productividad eliminado', codigo: 1})
     })
 })
 
