@@ -149,7 +149,7 @@ app.get("/productividad/fecha", function(request,response)
 app.get("/productividad/empleado", function(request,response)
 {
     let params = [request.query.id_employees, request.query.id_companies]  
-    let sql = "SELECT productivity.id_employees, employees.name, productivity.productivity, productivity.hours, productivity.date, productivity.id_companies, productivity.id_productivity FROM productivity JOIN employees ON (productivity.id_employees = employees.id_employees) WHERE productivity.id_employees = ? AND productivity.id_companies = ?"
+    let sql = "SELECT productivity.id_employees, employees.name, productivity.productivity, productivity.hours, productivity.date, productivity.id_companies, productivity.id_productivity FROM productivity JOIN employees ON (productivity.id_employees = employees.id_employees) WHERE productivity.id_employees = ? AND productivity.id_companies = ? ORDER BY productivity.date"
     connection.query(sql,params, function(err,res)
     {
         if(err)
